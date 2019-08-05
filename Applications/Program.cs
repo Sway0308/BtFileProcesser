@@ -10,16 +10,90 @@ namespace BtFileProcesserNet
     {
         static void Main(string[] args)
         {
-            ProcessOption(null);
+            ProcessOption();
         }
 
-        private static void ProcessOption(BtFileFinder finder)
+        private static void ProcessOption()
         {
-            Console.WriteLine("0: RenameVideoFile, 1: RenameDirName, 2: GetNeedRenameFiles, 3: GetNeededRenameDirs");
+            Console.WriteLine("0: DeleteEmptyDir, 1: ProcessBt");
             var option = Console.ReadLine();
             if (option.ToLower() == "exit")
             {
                 Console.WriteLine("bye bye");
+                Console.ReadLine();
+                return;
+            }
+
+            if (!int.TryParse(option, out var optionValue) || !(new int[] { 0, 1 }).Any(x => x == optionValue))
+            {
+                Console.WriteLine("wrong option");
+                Console.ReadLine();
+            }
+
+            if (optionValue == 0)
+                DeleteEmptyDir(null);
+
+            if (optionValue == 1)
+                ProcessBt(null);
+
+            ProcessOption();
+        }
+
+        private static void DeleteEmptyDir(EmptyDirFinder finder)
+        {
+            Console.WriteLine("0: FindEmptyDir, 1: DeleteDir");
+            var option = Console.ReadLine();
+            if (option.ToLower() == "exit")
+            {
+                Console.WriteLine("Finish DeleteEmptyDir");
+                Console.ReadLine();
+                return;
+            }
+
+            if (!int.TryParse(option, out var optionValue) || !(new int[] { 0, 1 }).Any(x => x == optionValue))
+            {
+                Console.WriteLine("wrong option");
+                Console.ReadLine();
+            }
+
+            finder = finder ?? new EmptyDirFinder();
+            if (optionValue == 0)
+            {
+                Console.WriteLine("RootPath:");
+                var rootPath = Console.ReadLine();
+                var result = finder.FindEmptyDir(rootPath);
+                foreach (var filePath in result)
+                {
+                    Console.WriteLine(filePath);
+                }
+                Console.WriteLine("==================================");
+                Console.WriteLine("Done");
+                Console.ReadLine();
+            }
+
+            if (optionValue == 1)
+            {
+                Console.WriteLine("RootPath:");
+                var rootPath = Console.ReadLine();
+                var result = finder.FindEmptyDir(rootPath);
+                foreach (var path in result)
+                {
+                    finder.DeleteDir(path);
+                }
+                Console.WriteLine("Done");
+                Console.ReadLine();
+            }
+
+            DeleteEmptyDir(finder);
+        }
+
+        private static void ProcessBt(BtFileFinder finder)
+        {
+            Console.WriteLine("0: GetNeedRenameFiles, 1: RenameVideoFile, 2: GetNeededRenameDirs, 3: RenameDirName");
+            var option = Console.ReadLine();
+            if (option.ToLower() == "exit")
+            {
+                Console.WriteLine("Finish ProcessBt");
                 Console.ReadLine();
                 return;
             }
@@ -37,26 +111,6 @@ namespace BtFileProcesserNet
                 var rootPath = Console.ReadLine();
                 Console.WriteLine("Ext Name");
                 var extName = Console.ReadLine();
-                finder.RenameVideoFile(rootPath, extName);
-                Console.WriteLine("Done");
-                Console.ReadLine();
-            }
-
-            if (optionValue == 1)
-            {
-                Console.WriteLine("RootPath:");
-                var rootPath = Console.ReadLine();
-                finder.RenameDirName(rootPath);
-                Console.WriteLine("Done");
-                Console.ReadLine();
-            }
-
-            if (optionValue == 2)
-            {
-                Console.WriteLine("RootPath:");
-                var rootPath = Console.ReadLine();
-                Console.WriteLine("Ext Name");
-                var extName = Console.ReadLine();
                 var result = finder.GetNeedRenameFiles(rootPath, extName);
                 var i = 0;
                 foreach (var file in result.Keys)
@@ -68,7 +122,22 @@ namespace BtFileProcesserNet
                 Console.ReadLine();
             }
 
-            if (optionValue == 3)
+            if (optionValue == 1)
+            {
+                Console.WriteLine("RootPath:");
+                var rootPath = Console.ReadLine();
+                Console.WriteLine("Ext Name");
+                var extName = Console.ReadLine();
+                var result = finder.GetNeedRenameFiles(rootPath, extName);
+                foreach (var filePath in result.Keys)
+                {
+                    finder.RenameVideoFile(filePath, result[filePath]);
+                }
+                Console.WriteLine("Done");
+                Console.ReadLine();
+            }
+
+            if (optionValue == 2)
             {
                 Console.WriteLine("RootPath:");
                 var rootPath = Console.ReadLine();
@@ -82,7 +151,21 @@ namespace BtFileProcesserNet
                 Console.ReadLine();
             }
 
-            ProcessOption(finder);
+            if (optionValue == 3)
+            {
+                Console.WriteLine("RootPath:");
+                var rootPath = Console.ReadLine();
+                var result = finder.GetNeededRenameDirs(rootPath);
+                foreach (var path in result.Keys)
+                {
+                    finder.RenameDirName(path, result[path]);
+                }
+                Console.WriteLine("=================================");
+                Console.WriteLine("Done");
+                Console.ReadLine();
+            }
+
+            ProcessBt(finder);
         }
     }
 }

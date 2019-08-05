@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace BtFileProcesserNet
 {
+    /// <summary>
+    /// BT 檔案更新器
+    /// </summary>
     public class BtFileFinder
     {
         /// <summary>
@@ -22,10 +25,10 @@ namespace BtFileProcesserNet
             {
                 var ans = from m in Directory.EnumerateFiles(dir, $"*.{extName}")
                           from j in Directory.EnumerateFiles(dir, "*.jpg")
-                          where m.Substring(0, m.Length - 4) != j.Substring(0, j.Length - 4)
+                          where GetFileRealName(m) != GetFileRealName(j)
                           select new
                           {
-                              RealName = j.Substring(0, j.Length - 4),
+                              RealName = GetFileRealName(j),
                               FilePath = Path.Combine(dir, m)
                           };
                 ans.ToList().ForEach(x => result.Add(x.FilePath, x.RealName));
@@ -36,17 +39,14 @@ namespace BtFileProcesserNet
         /// <summary>
         /// 重新命名影音檔案
         /// </summary>
-        /// <param name="rootPath">欲搜尋的根目錄</param>
-        /// <param name="extName">影音檔副檔名</param>
-        public void RenameVideoFile(string rootPath, string extName)
+        /// <param name="filePath">欲更名的檔案路徑</param>
+        /// <param name="realName">欲更名的檔案名稱</param>
+        public void RenameVideoFile(string filePath, string realName)
         {
-            var result = GetNeedRenameFiles(rootPath, extName);
-            foreach (var filePath in result.Keys)
-            {
-                var path = Path.GetDirectoryName(filePath);
-                var realPath = Path.Combine(path, $"{result[filePath]}.{extName}");
-                File.Move(filePath, realPath);
-            }
+            var path = Path.GetDirectoryName(filePath);
+            var ext = Path.GetExtension(filePath);
+            var realPath = Path.Combine(path, $"{realName}.{ext}");
+            File.Move(filePath, realPath);            
         }
 
         /// <summary>
@@ -61,10 +61,10 @@ namespace BtFileProcesserNet
             foreach (var dir in dirs)
             {
                 var ans = from j in Directory.EnumerateFiles(dir, "*.jpg")
-                          where dir != j.Substring(0, j.Length - 4)
+                          where dir != GetFileRealName(j)
                           select new
                           {
-                              RealName = j.Substring(0, j.Length - 4),
+                              RealName = GetFileRealName(j),
                               Path = dir
                           };
                 ans.ToList().ForEach(x => result.Add(x.Path, x.RealName));
@@ -76,15 +76,21 @@ namespace BtFileProcesserNet
         /// 重新命名資料夾名稱
         /// </summary>
         /// <param name="rootPath">欲搜尋的根目錄</param>
-        public void RenameDirName(string rootPath)
+        public void RenameDirName(string path, string realName)
         {
-            var result = GetNeededRenameDirs(rootPath);
-            foreach (var path in result.Keys)
-            {
-                var parentPath = Path.GetPathRoot(path);
-                var realPath = Path.Combine(parentPath, $"{result[path]}");
-                Directory.Move(path, realPath);
-            }
+            var parentPath = Path.GetPathRoot(path);
+            var realPath = Path.Combine(parentPath, $"{realName}");
+            Directory.Move(path, realPath);            
+        }
+
+        /// <summary>
+        /// 取得真正檔案名稱
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public string GetFileRealName(string fileName)
+        {
+            return Path.GetFileNameWithoutExtension(fileName);
         }
     }
 }
