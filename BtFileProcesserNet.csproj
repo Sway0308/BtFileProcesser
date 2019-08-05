@@ -43,8 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BtFileFinder.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Applications\Program.cs" />
+    <Compile Include="Library\BtFileFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
