@@ -84,6 +84,20 @@ namespace BtFileProcesserNet
         }
 
         /// <summary>
+        /// 取得資料夾中存有超過指定數目檔案的資料夾名稱列舉
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <param name="overCount"></param>
+        /// <returns></returns>
+        public IEnumerable<string> FindOverFiles(string rootPath, int overCount)
+        {
+            var dirs = from d in Directory.EnumerateDirectories(rootPath)
+                       where Directory.EnumerateFiles(d).Count() >= overCount
+                       select d;
+            return dirs;
+        }
+
+        /// <summary>
         /// 取得真正檔案名稱
         /// </summary>
         /// <param name="fileName"></param>

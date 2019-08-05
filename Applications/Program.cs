@@ -30,6 +30,8 @@ namespace BtFileProcesserNet
                 Console.ReadLine();
             }
 
+            Console.WriteLine("");
+
             if (optionValue == 0)
                 DeleteEmptyDir(null);
 
@@ -47,6 +49,7 @@ namespace BtFileProcesserNet
             {
                 Console.WriteLine("Finish DeleteEmptyDir");
                 Console.ReadLine();
+                Console.Clear();
                 return;
             }
 
@@ -89,16 +92,24 @@ namespace BtFileProcesserNet
 
         private static void ProcessBt(BtFileFinder finder)
         {
-            Console.WriteLine("0: GetNeedRenameFiles, 1: RenameVideoFile, 2: GetNeededRenameDirs, 3: RenameDirName");
+            var text = new StringBuilder();
+            text.AppendLine("0: GetNeedRenameFiles");
+            text.AppendLine("1: RenameVideoFile");
+            text.AppendLine("2: GetNeededRenameDirs");
+            text.AppendLine("3: RenameDirName");
+            text.AppendLine("4: FindOverFiles");
+
+            Console.WriteLine(text);
             var option = Console.ReadLine();
             if (option.ToLower() == "exit")
             {
                 Console.WriteLine("Finish ProcessBt");
                 Console.ReadLine();
+                Console.Clear();
                 return;
             }
 
-            if (!int.TryParse(option, out var optionValue) || !(new int[] { 0, 1, 2, 3 }).Any(x => x == optionValue))
+            if (!int.TryParse(option, out var optionValue) || !(new int[] { 0, 1, 2, 3, 4 }).Any(x => x == optionValue))
             {
                 Console.WriteLine("wrong option");
                 Console.ReadLine();
@@ -147,6 +158,7 @@ namespace BtFileProcesserNet
                 {
                     Console.WriteLine($"{++i}:{path}, {result[path]}");
                 }
+                Console.WriteLine("=================================");
                 Console.WriteLine("Done");
                 Console.ReadLine();
             }
@@ -159,6 +171,27 @@ namespace BtFileProcesserNet
                 foreach (var path in result.Keys)
                 {
                     finder.RenameDirName(path, result[path]);
+                }
+                Console.WriteLine("Done");
+                Console.ReadLine();
+            }
+
+            if (optionValue == 4)
+            {
+                Console.WriteLine("RootPath:");
+                var rootPath = Console.ReadLine();
+                Console.WriteLine("Over Count:");
+                var overCount = Console.ReadLine();
+                if (!int.TryParse(overCount, out var overCountValue))
+                {
+                    Console.WriteLine("Wrong number");
+                    ProcessBt(finder);
+                }
+
+                var result = finder.FindOverFiles(rootPath, overCountValue);
+                foreach (var path in result)
+                {
+                    Console.WriteLine($"{path}");
                 }
                 Console.WriteLine("=================================");
                 Console.WriteLine("Done");
