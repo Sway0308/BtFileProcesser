@@ -9,11 +9,12 @@ namespace BtFileProcesserNet
     public class BtFileFinder
     {
         /// <summary>
-        /// 重新命名影音檔案
+        /// 取得需要重新命名的檔案列舉
         /// </summary>
-        /// <param name="rootPath">欲搜尋的根目錄</param>
-        /// <param name="extName">影音檔副檔名</param>
-        public void RenameVideoFile(string rootPath, string extName)
+        /// <param name="rootPath"></param>
+        /// <param name="extName"></param>
+        /// <returns></returns>
+        public Dictionary<string, string> GetNeedRenameFiles(string rootPath, string extName)
         {
             var result = new Dictionary<string, string>();
             var dirs = Directory.EnumerateDirectories(rootPath);
@@ -29,7 +30,17 @@ namespace BtFileProcesserNet
                           };
                 ans.ToList().ForEach(x => result.Add(x.FilePath, x.RealName));
             }
+            return result;
+        }
 
+        /// <summary>
+        /// 重新命名影音檔案
+        /// </summary>
+        /// <param name="rootPath">欲搜尋的根目錄</param>
+        /// <param name="extName">影音檔副檔名</param>
+        public void RenameVideoFile(string rootPath, string extName)
+        {
+            var result = GetNeedRenameFiles(rootPath, extName);
             foreach (var filePath in result.Keys)
             {
                 var path = Path.GetDirectoryName(filePath);
@@ -39,10 +50,11 @@ namespace BtFileProcesserNet
         }
 
         /// <summary>
-        /// 重新命名資料夾名稱
+        /// 取得需要重新命名的資料夾列舉
         /// </summary>
-        /// <param name="rootPath">欲搜尋的根目錄</param>
-        public void RenameDirName(string rootPath)
+        /// <param name="rootPath"></param>
+        /// <returns></returns>
+        public Dictionary<string, string> GetNeededRenameDirs(string rootPath)
         {
             var result = new Dictionary<string, string>();
             var dirs = Directory.EnumerateDirectories(rootPath);
@@ -57,7 +69,16 @@ namespace BtFileProcesserNet
                           };
                 ans.ToList().ForEach(x => result.Add(x.Path, x.RealName));
             }
+            return result;
+        }
 
+        /// <summary>
+        /// 重新命名資料夾名稱
+        /// </summary>
+        /// <param name="rootPath">欲搜尋的根目錄</param>
+        public void RenameDirName(string rootPath)
+        {
+            var result = GetNeededRenameDirs(rootPath);
             foreach (var path in result.Keys)
             {
                 var parentPath = Path.GetPathRoot(path);
