@@ -87,6 +87,8 @@ namespace BtFileProcesserNet
                 if (result is Dictionary<string, string>)
                 {
                     var realResult = result as Dictionary<string, string>;
+                    Console.WriteLine();
+                    Console.WriteLine("Result:");
                     foreach (var key in realResult.Keys)
                     {
                         Console.WriteLine($"Key={key}, Value={realResult[key]}");
@@ -104,6 +106,7 @@ namespace BtFileProcesserNet
             Console.WriteLine("==================");
             Console.WriteLine("finished");
             Console.WriteLine();
+            Console.ReadLine();
 
             ProcessDosomething(finder);
         }
