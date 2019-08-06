@@ -45,6 +45,7 @@ namespace BtFileProcesserNet
 
         private static void ProcessDosomething(object finder)
         {
+            Console.Clear();
             var methodDic = GetMethodDic(finder);
             var text = new StringBuilder();
             foreach (var key in methodDic.Keys)
@@ -81,6 +82,7 @@ namespace BtFileProcesserNet
                 var realValue = ToRealType(inputText, p.ParameterType);
                 values.Add(realValue);
             }
+            Console.WriteLine("Invoke...");
             var result = method.Invoke(finder, values.ToArray());
             if (result != null)
             {
@@ -105,7 +107,7 @@ namespace BtFileProcesserNet
             }
             Console.WriteLine("==================");
             Console.WriteLine("finished");
-            Console.WriteLine();
+            Console.WriteLine("Press any key...");
             Console.ReadLine();
 
             ProcessDosomething(finder);

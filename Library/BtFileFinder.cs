@@ -126,6 +126,7 @@ namespace BtFileProcesserNet
             var jpgs = from d in dirs
                        from j in Directory.EnumerateFiles(d, "*.jpg")
                        where j.Contains(d)
+                        && Path.GetFileName(j).Length > d.Replace(Path.GetDirectoryName(d) + "\\", "").Length + 4
                        select new {
                            Path = d,
                            Jpg = j
