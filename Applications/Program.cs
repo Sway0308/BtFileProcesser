@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,172 +35,104 @@ namespace BtFileProcesserNet
             Console.WriteLine("");
 
             if (optionValue == 0)
-                DeleteEmptyDir(null);
+                ProcessDosomething(new EmptyDirFinder());
 
             if (optionValue == 1)
-                ProcessBt(null);
+                ProcessDosomething(new BtFileFinder());
 
             ProcessOption();
         }
 
-        private static void DeleteEmptyDir(EmptyDirFinder finder)
+        private static void ProcessDosomething(object finder)
         {
-            Console.WriteLine("0: FindEmptyDir, 1: DeleteDir");
-            var option = Console.ReadLine();
-            if (option.ToLower() == "exit")
-            {
-                Console.WriteLine("Finish DeleteEmptyDir");
-                Console.ReadLine();
-                Console.Clear();
-                return;
-            }
-
-            if (!int.TryParse(option, out var optionValue) || !(new int[] { 0, 1 }).Any(x => x == optionValue))
-            {
-                Console.WriteLine("wrong option");
-                Console.ReadLine();
-            }
-
-            finder = finder ?? new EmptyDirFinder();
-            if (optionValue == 0)
-            {
-                Console.WriteLine("RootPath:");
-                var rootPath = Console.ReadLine();
-                var result = finder.FindEmptyDir(rootPath);
-                foreach (var filePath in result)
-                {
-                    Console.WriteLine(filePath);
-                }
-                Console.WriteLine("==================================");
-                Console.WriteLine("Done");
-                Console.ReadLine();
-            }
-
-            if (optionValue == 1)
-            {
-                Console.WriteLine("RootPath:");
-                var rootPath = Console.ReadLine();
-                var result = finder.FindEmptyDir(rootPath);
-                foreach (var path in result)
-                {
-                    finder.DeleteDir(path);
-                }
-                Console.WriteLine("Done");
-                Console.ReadLine();
-            }
-
-            DeleteEmptyDir(finder);
-        }
-
-        private static void ProcessBt(BtFileFinder finder)
-        {
+            var methodDic = GetMethodDic(finder);
             var text = new StringBuilder();
-            text.AppendLine("0: GetNeedRenameFiles");
-            text.AppendLine("1: RenameVideoFile");
-            text.AppendLine("2: GetNeededRenameDirs");
-            text.AppendLine("3: RenameDirName");
-            text.AppendLine("4: FindOverFiles");
+            foreach (var key in methodDic.Keys)
+            {
+                var m = methodDic[key];
+                text.AppendLine($"{key}: {m.Name}");
+            }
 
             Console.WriteLine(text);
             var option = Console.ReadLine();
             if (option.ToLower() == "exit")
             {
-                Console.WriteLine("Finish ProcessBt");
+                Console.WriteLine("Finish Process");
                 Console.ReadLine();
                 Console.Clear();
                 return;
             }
 
-            if (!int.TryParse(option, out var optionValue) || !(new int[] { 0, 1, 2, 3, 4 }).Any(x => x == optionValue))
+            if (!int.TryParse(option, out var optionValue) || !methodDic.Keys.Any(x => x == optionValue))
             {
                 Console.WriteLine("wrong option");
                 Console.ReadLine();
+                ProcessDosomething(finder);
+                return;
             }
 
-            finder = finder ?? new BtFileFinder();
-            if (optionValue == 0)
+            var method = methodDic[optionValue];
+            var paras = method.GetParameters();
+            var values = new List<object>();
+            foreach (var p in paras)
             {
-                Console.WriteLine("RootPath:");
-                var rootPath = Console.ReadLine();
-                Console.WriteLine("Ext Name");
-                var extName = Console.ReadLine();
-                var result = finder.GetNeedRenameFiles(rootPath, extName);
-                var i = 0;
-                foreach (var file in result.Keys)
-                {
-                    Console.WriteLine($"{++i}:{file}, {result[file]}");
-                }
-                Console.WriteLine("=================================");
-                Console.WriteLine("Done");
-                Console.ReadLine();
+                Console.WriteLine($"Name={p.Name}, Type={p.ParameterType.Name}, Value=?");
+                var inputText = Console.ReadLine();
+                var realValue = ToRealType(inputText, p.ParameterType);
+                values.Add(realValue);
             }
-
-            if (optionValue == 1)
+            var result = method.Invoke(finder, values.ToArray());
+            if (result != null)
             {
-                Console.WriteLine("RootPath:");
-                var rootPath = Console.ReadLine();
-                Console.WriteLine("Ext Name");
-                var extName = Console.ReadLine();
-                var result = finder.GetNeedRenameFiles(rootPath, extName);
-                foreach (var filePath in result.Keys)
+                if (result is Dictionary<string, string>)
                 {
-                    finder.RenameVideoFile(filePath, result[filePath]);
+                    var realResult = result as Dictionary<string, string>;
+                    foreach (var key in realResult.Keys)
+                    {
+                        Console.WriteLine($"Key={key}, Value={realResult[key]}");
+                    }
                 }
-                Console.WriteLine("Done");
-                Console.ReadLine();
-            }
 
-            if (optionValue == 2)
+                if (result is IEnumerable<string>)
+                {
+                    foreach (var s in result as IEnumerable<string>)
+                    {
+                        Console.WriteLine(s);
+                    }
+                }
+            }
+            Console.WriteLine("==================");
+            Console.WriteLine("finished");
+            Console.WriteLine();
+
+            ProcessDosomething(finder);
+        }
+
+        private static Dictionary<int, MethodInfo> GetMethodDic(object o)
+        {
+            var methods = o.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            var i = 0;
+            return methods.ToDictionary(k => i++, v => v);
+        }
+
+        private static object ToRealType(string inputText, Type type)
+        {
+            switch (type.Name.ToLower())
             {
-                Console.WriteLine("RootPath:");
-                var rootPath = Console.ReadLine();
-                var result = finder.GetNeededRenameDirs(rootPath);
-                var i = 0;
-                foreach (var path in result.Keys)
-                {
-                    Console.WriteLine($"{++i}:{path}, {result[path]}");
-                }
-                Console.WriteLine("=================================");
-                Console.WriteLine("Done");
-                Console.ReadLine();
+                case "int32":
+                    return Convert.ToInt32(inputText);
+                case "double":
+                    return Convert.ToDouble(inputText);
+                case "datetime":
+                    return Convert.ToDateTime(inputText);
+                case "decimal":
+                    return Convert.ToDecimal(inputText);
+                case "boolean":
+                    return Convert.ToBoolean(inputText);
+                case "string":
+                default:
+                    return inputText;
             }
-
-            if (optionValue == 3)
-            {
-                Console.WriteLine("RootPath:");
-                var rootPath = Console.ReadLine();
-                var result = finder.GetNeededRenameDirs(rootPath);
-                foreach (var path in result.Keys)
-                {
-                    finder.RenameDirName(path, result[path]);
-                }
-                Console.WriteLine("Done");
-                Console.ReadLine();
-            }
-
-            if (optionValue == 4)
-            {
-                Console.WriteLine("RootPath:");
-                var rootPath = Console.ReadLine();
-                Console.WriteLine("Over Count:");
-                var overCount = Console.ReadLine();
-                if (!int.TryParse(overCount, out var overCountValue))
-                {
-                    Console.WriteLine("Wrong number");
-                    ProcessBt(finder);
-                }
-
-                var result = finder.FindOverFiles(rootPath, overCountValue);
-                foreach (var path in result)
-                {
-                    Console.WriteLine($"{path}");
-                }
-                Console.WriteLine("=================================");
-                Console.WriteLine("Done");
-                Console.ReadLine();
-            }
-
-            ProcessBt(finder);
         }
     }
 }

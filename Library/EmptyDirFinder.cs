@@ -12,6 +12,11 @@ namespace BtFileProcesserNet
     /// </summary>
     public class EmptyDirFinder
     {
+        /// <summary>
+        /// 尋找空白資料夾
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <returns></returns>
         public IEnumerable<string> FindEmptyDir(string rootPath)
         {
             var dirs = from d in Directory.EnumerateDirectories(rootPath)
@@ -24,10 +29,14 @@ namespace BtFileProcesserNet
         /// <summary>
         /// 刪除資料夾
         /// </summary>
-        /// <param name="dir"></param>
-        public void DeleteDir(string dir)
+        /// <param name="rootPath"></param>
+        public void DeleteDir(string rootPath)
         {
-            Directory.Delete(dir);
+            var result = FindEmptyDir(rootPath);
+            foreach (var dir in result)
+            {
+                Directory.Delete(dir);
+            }
         }
     }
 }

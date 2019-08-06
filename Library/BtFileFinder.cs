@@ -41,12 +41,16 @@ namespace BtFileProcesserNet
         /// </summary>
         /// <param name="filePath">欲更名的檔案路徑</param>
         /// <param name="realName">欲更名的檔案名稱</param>
-        public void RenameVideoFile(string filePath, string realName)
+        public void RenameVideoFile(string rootPath, string extName)
         {
-            var path = Path.GetDirectoryName(filePath);
-            var ext = Path.GetExtension(filePath);
-            var realPath = Path.Combine(path, $"{realName}.{ext}");
-            File.Move(filePath, realPath);            
+            var result = GetNeedRenameFiles(rootPath, extName);
+            foreach (var filePath in result.Keys)
+            {
+                var path = Path.GetDirectoryName(filePath);
+                var ext = Path.GetExtension(filePath);
+                var realPath = Path.Combine(path, $"{result[filePath]}.{ext}");
+                File.Move(filePath, realPath);
+            }
         }
 
         /// <summary>
@@ -76,11 +80,15 @@ namespace BtFileProcesserNet
         /// 重新命名資料夾名稱
         /// </summary>
         /// <param name="rootPath">欲搜尋的根目錄</param>
-        public void RenameDirName(string path, string realName)
+        public void RenameDirName(string rootPath)
         {
-            var parentPath = Path.GetPathRoot(path);
-            var realPath = Path.Combine(parentPath, $"{realName}");
-            Directory.Move(path, realPath);            
+            var result = GetNeededRenameDirs(rootPath);
+            foreach (var path in result.Keys)
+            {
+                var parentPath = Path.GetPathRoot(path);
+                var realPath = Path.Combine(parentPath, $"{result[path]}");
+                Directory.Move(path, realPath);
+            }         
         }
 
         /// <summary>
@@ -102,9 +110,27 @@ namespace BtFileProcesserNet
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public string GetFileRealName(string fileName)
+        private string GetFileRealName(string fileName)
         {
             return Path.GetFileNameWithoutExtension(fileName);
+        }
+
+        /// <summary>
+        /// 找到圖檔有完整名稱，但資料夾卻沒有完整名稱的資料
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <returns></returns>
+        public Dictionary<string, string> FindFullImgFileNameButSimpleDirName(string rootPath)
+        {
+            var dirs = Directory.EnumerateDirectories(rootPath);
+            var jpgs = from d in dirs
+                       from j in Directory.EnumerateFiles(d, "*.jpg")
+                       where j.Contains(d)
+                       select new {
+                           Path = d,
+                           Jpg = j
+                       };
+            return jpgs.ToDictionary(k => k.Jpg, v => v.Path);
         }
     }
 }
