@@ -77,7 +77,7 @@ namespace BtFileProcesserNet
             var values = new List<object>();
             foreach (var p in paras)
             {
-                Console.WriteLine($"Name={p.Name}, Type={p.ParameterType.Name}, Value=?");
+                Console.WriteLine($"{p.Name}({p.ParameterType.Name})");
                 var inputText = Console.ReadLine();
                 var realValue = ToRealType(inputText, p.ParameterType);
                 values.Add(realValue);

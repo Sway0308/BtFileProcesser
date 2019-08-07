@@ -54,44 +54,6 @@ namespace BtFileProcesserNet
         }
 
         /// <summary>
-        /// 取得需要重新命名的資料夾列舉
-        /// </summary>
-        /// <param name="rootPath"></param>
-        /// <returns></returns>
-        public Dictionary<string, string> GetNeededRenameDirs(string rootPath)
-        {
-            var result = new Dictionary<string, string>();
-            var dirs = Directory.EnumerateDirectories(rootPath);
-            foreach (var dir in dirs)
-            {
-                var ans = from j in Directory.EnumerateFiles(dir, "*.jpg")
-                          where dir != GetFileRealName(j)
-                          select new
-                          {
-                              RealName = GetFileRealName(j),
-                              Path = dir
-                          };
-                ans.ToList().ForEach(x => result.Add(x.Path, x.RealName));
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// 重新命名資料夾名稱
-        /// </summary>
-        /// <param name="rootPath">欲搜尋的根目錄</param>
-        public void RenameDirName(string rootPath)
-        {
-            var result = GetNeededRenameDirs(rootPath);
-            foreach (var path in result.Keys)
-            {
-                var parentPath = Path.GetPathRoot(path);
-                var realPath = Path.Combine(parentPath, $"{result[path]}");
-                Directory.Move(path, realPath);
-            }         
-        }
-
-        /// <summary>
         /// 取得資料夾中存有超過指定數目檔案的資料夾名稱列舉
         /// </summary>
         /// <param name="rootPath"></param>
@@ -120,18 +82,37 @@ namespace BtFileProcesserNet
         /// </summary>
         /// <param name="rootPath"></param>
         /// <returns></returns>
-        public Dictionary<string, string> FindFullImgFileNameButSimpleDirName(string rootPath)
+        public Dictionary<string, string> GetFullImgFileNameButSimpleDirName(string rootPath)
         {
             var dirs = Directory.EnumerateDirectories(rootPath);
             var jpgs = from d in dirs
                        from j in Directory.EnumerateFiles(d, "*.jpg")
                        where j.Contains(d)
                         && Path.GetFileName(j).Length > d.Replace(Path.GetDirectoryName(d) + "\\", "").Length + 4
+                        && d.Replace(Path.GetDirectoryName(d) + "\\", "").Length == 9
                        select new {
                            Path = d,
                            Jpg = j
                        };
             return jpgs.ToDictionary(k => k.Jpg, v => v.Path);
+        }
+
+        /// <summary>
+        /// 重新命名資料夾名稱
+        /// </summary>
+        /// <param name="rootPath">欲搜尋的根目錄</param>
+        public void RenameDirName(string rootPath)
+        {
+            var result = GetFullImgFileNameButSimpleDirName(rootPath);
+            foreach (var jpg in result.Keys)
+            {
+                var realName = Path.GetFileNameWithoutExtension(jpg);
+                var path = result[jpg];
+
+                var parentPath = Path.GetDirectoryName(path);
+                var realPath = Path.Combine(path, $"{realName}");
+                Directory.Move(path, realPath);
+            }
         }
     }
 }
