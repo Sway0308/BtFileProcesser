@@ -12,7 +12,7 @@ namespace BtFileProcesserNet
     {
         static void Main(string[] args)
         {
-            var timer = new Timer(3000);
+            var timer = new Timer(60 * 60 * 1000);  //每一小時檢查一次
             timer.Elapsed += (s, e) => {
                 Console.WriteLine(DateTime.Now);
                 DeleteRegistryKey();
