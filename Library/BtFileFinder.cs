@@ -114,5 +114,32 @@ namespace BtFileProcesserNet
                 Directory.Move(path, realPath);
             }
         }
+
+        /// <summary>
+        /// 搜尋一個資料夾中有多個資料夾，但無其他檔案的資料夾
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <returns></returns>
+        public Dictionary<string, string> GetNestingDirs(string rootPath)
+        {
+            var result = new Dictionary<string, string>();
+            foreach (var d in Directory.EnumerateDirectories(rootPath))
+            {
+                var dirs = GetDirInDirButNoFiles(d);
+                if (!dirs.Any())
+                    continue;
+                result.Add(d, string.Concat(dirs));
+            }
+
+            return result;
+        }
+
+        private string[] GetDirInDirButNoFiles(string path)
+        {
+            var dirs = from d in Directory.EnumerateDirectories(path)
+                       where !Directory.EnumerateFiles(d).Any()
+                       select d;
+            return dirs.ToArray();
+        }
     }
 }

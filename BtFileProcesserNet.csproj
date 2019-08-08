@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>BtFileProcesserNet.RegistryInspector</StartupObject>
+    <StartupObject>BtFileProcesserNet.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
