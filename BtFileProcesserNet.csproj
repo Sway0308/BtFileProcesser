@@ -47,9 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Applications\Program.cs" />
-    <Compile Include="Applications\RegistryInspector.cs" />
     <Compile Include="Library\BtFileFinder.cs" />
-    <Compile Include="Library\EmptyDirFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

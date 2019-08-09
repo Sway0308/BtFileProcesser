@@ -12,6 +12,33 @@ namespace BtFileProcesserNet
     public class BtFileFinder
     {
         /// <summary>
+        /// 尋找空白資料夾
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <returns></returns>
+        public IEnumerable<string> FindEmptyDir(string rootPath)
+        {
+            var dirs = from d in Directory.EnumerateDirectories(rootPath)
+                       where !Directory.EnumerateFiles(d).Any()
+                        && !Directory.EnumerateDirectories(d).Any()
+                       select d;
+            return dirs;
+        }
+
+        /// <summary>
+        /// 刪除資料夾
+        /// </summary>
+        /// <param name="rootPath"></param>
+        public void DeleteDir(string rootPath)
+        {
+            var result = FindEmptyDir(rootPath);
+            foreach (var dir in result)
+            {
+                Directory.Delete(dir);
+            }
+        }
+
+        /// <summary>
         /// 取得需要重新命名的檔案列舉
         /// </summary>
         /// <param name="rootPath"></param>
@@ -120,26 +147,62 @@ namespace BtFileProcesserNet
         /// </summary>
         /// <param name="rootPath"></param>
         /// <returns></returns>
-        public Dictionary<string, string> GetNestingDirs(string rootPath)
+        public IEnumerable<string> GetNestingDirs(string rootPath)
         {
-            var result = new Dictionary<string, string>();
+            var result = new List<string>();
             foreach (var d in Directory.EnumerateDirectories(rootPath))
             {
-                var dirs = GetDirInDirButNoFiles(d);
-                if (!dirs.Any())
+                if (!HasNestDir(d))
                     continue;
-                result.Add(d, string.Concat(dirs));
+                var a = DoGetNestingDirs(d);
+                if (a.Any())
+                    result.AddRange(a);
             }
-
             return result;
         }
 
-        private string[] GetDirInDirButNoFiles(string path)
+        /// <summary>
+        /// 取得巢狀資料夾
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <returns></returns>
+        private IEnumerable<string> DoGetNestingDirs(string rootPath)
         {
-            var dirs = from d in Directory.EnumerateDirectories(path)
-                       where !Directory.EnumerateFiles(d).Any()
-                       select d;
-            return dirs.ToArray();
+            foreach (var d in Directory.EnumerateDirectories(rootPath))
+            {
+                if (!HasNestDir(d))
+                    yield return $"{rootPath} => {d}";
+                else
+                    DoGetNestingDirs(d);
+            }
+        }
+
+        /// <summary>
+        /// 資料夾中是否還有資料夾
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private bool HasNestDir(string path)
+        {
+            return Directory.EnumerateDirectories(path).Any();
+        }
+
+        public IEnumerable<string> FindDirWithKeyword(string rootPath, string keyword)
+        {
+            if (string.IsNullOrEmpty(keyword))
+                yield break;
+
+            foreach (var dir in Directory.EnumerateDirectories(rootPath))
+            {
+                if (HasNestDir(dir))
+                {
+                    var result = FindDirWithKeyword(dir, keyword);
+                    foreach (var r in result)
+                        yield return r;
+                }
+                else if (dir.Contains(keyword))
+                    yield return dir;
+            }
         }
     }
 }

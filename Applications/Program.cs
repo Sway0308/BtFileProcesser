@@ -17,7 +17,7 @@ namespace BtFileProcesserNet
 
         private static void ProcessOption()
         {
-            Console.WriteLine("0: DeleteEmptyDir, 1: ProcessBt");
+            Console.WriteLine("ProcessBt");
             var option = Console.ReadLine();
             if (option.ToLower() == "exit")
             {
@@ -26,19 +26,8 @@ namespace BtFileProcesserNet
                 return;
             }
 
-            if (!int.TryParse(option, out var optionValue) || !(new int[] { 0, 1 }).Any(x => x == optionValue))
-            {
-                Console.WriteLine("wrong option");
-                Console.ReadLine();
-            }
-
             Console.WriteLine("");
-
-            if (optionValue == 0)
-                ProcessDosomething(new EmptyDirFinder());
-
-            if (optionValue == 1)
-                ProcessDosomething(new BtFileFinder());
+            ProcessDosomething(new BtFileFinder());
 
             ProcessOption();
         }
@@ -89,20 +78,13 @@ namespace BtFileProcesserNet
                 if (result is Dictionary<string, string>)
                 {
                     var realResult = result as Dictionary<string, string>;
-                    Console.WriteLine();
-                    Console.WriteLine("Result:");
-                    foreach (var key in realResult.Keys)
-                    {
-                        Console.WriteLine($"Key={key}, Value={realResult[key]}");
-                    }
+                    var strResult = realResult.Select(x => $"{x.Key} => {x.Value}");
+                    ShowResult(strResult);
                 }
 
                 if (result is IEnumerable<string>)
                 {
-                    foreach (var s in result as IEnumerable<string>)
-                    {
-                        Console.WriteLine(s);
-                    }
+                    ShowResult(result as IEnumerable<string>);
                 }
             }
             Console.WriteLine("==================");
@@ -111,6 +93,31 @@ namespace BtFileProcesserNet
             Console.ReadLine();
 
             ProcessDosomething(finder);
+        }
+
+        private static void ShowResult(IEnumerable<string> result)
+        {
+            Console.WriteLine();
+            if (!result.Any())
+            {
+                Console.WriteLine("No Result");
+                return;
+            }
+
+            Console.WriteLine("Save File(Y) or Print(else)？");
+            var ans = Console.ReadLine();
+            if (ans.ToUpper() == "Y")
+            {
+                File.WriteAllText($"R:\\{DateTime.Now.ToString("yyyyMMdd_hhmmss")}.txt", string.Join(Environment.NewLine, result.ToArray()), Encoding.UTF8);
+            }
+            else
+            {
+                Console.WriteLine("Result:");
+                foreach (var s in result)
+                {
+                    Console.WriteLine(s);
+                }
+            }
         }
 
         private static Dictionary<int, MethodInfo> GetMethodDic(object o)
