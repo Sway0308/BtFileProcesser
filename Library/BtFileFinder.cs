@@ -18,11 +18,20 @@ namespace BtFileProcesserNet
         /// <returns></returns>
         public IEnumerable<string> FindEmptyDir(string rootPath)
         {
-            var dirs = from d in Directory.EnumerateDirectories(rootPath)
-                       where !Directory.EnumerateFiles(d).Any()
-                        && !Directory.EnumerateDirectories(d).Any()
-                       select d;
-            return dirs;
+            foreach (var dir in Directory.EnumerateDirectories(rootPath))
+            {
+                if (HasNestDir(dir))
+                {
+                    var result = FindEmptyDir(dir);
+                    foreach (var r in result)
+                        yield return r;
+                }
+                else
+                {
+                    if (!Directory.EnumerateFiles(dir).Any())
+                        yield return dir;
+                }
+            }
         }
 
         /// <summary>
@@ -187,6 +196,12 @@ namespace BtFileProcesserNet
             return Directory.EnumerateDirectories(path).Any();
         }
 
+        /// <summary>
+        /// 搜尋包含關鍵字的資料夾
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <param name="keyword"></param>
+        /// <returns></returns>
         public IEnumerable<string> FindDirWithKeyword(string rootPath, string keyword)
         {
             if (string.IsNullOrEmpty(keyword))
@@ -202,6 +217,48 @@ namespace BtFileProcesserNet
                 }
                 else if (dir.Contains(keyword))
                     yield return dir;
+            }
+        }
+
+        /// <summary>
+        /// 搜尋包含關鍵字的檔案
+        /// </summary>
+        /// <param name="rootPath"></param>
+        /// <param name="keyword"></param>
+        /// <returns></returns>
+        public IEnumerable<string> FindFileWithKeyword(string rootPath, string keyword)
+        {
+            foreach (var dir in Directory.EnumerateDirectories(rootPath))
+            {
+                var files = from f in Directory.EnumerateFiles(dir)
+                            from ext in new string[] { "avi", "mp4", "mkv" }
+                            where Path.GetFileName(f).Contains(keyword)
+                               && Path.GetExtension(f).Contains(ext)
+                            select f;
+                foreach (var r in files)
+                    yield return r;
+
+                if (HasNestDir(dir))
+                {
+                    var result = FindFileWithKeyword(dir, keyword);
+                    foreach (var r in result)
+                        yield return r;
+                }
+                else
+                {
+                    if (dir.Contains(keyword))
+                        yield return dir;
+                    else
+                    {
+                        var result = from f in Directory.EnumerateFiles(dir)
+                                     from ext in new string[] { "avi", "mp4", "mkv" }
+                                     where Path.GetFileName(f).Contains(keyword)
+                                        && Path.GetExtension(f).Contains(ext)
+                                     select f;
+                        foreach (var r in result)
+                            yield return r;
+                    }
+                }
             }
         }
     }

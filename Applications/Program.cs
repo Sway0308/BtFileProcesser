@@ -12,24 +12,9 @@ namespace BtFileProcesserNet
     {
         static void Main(string[] args)
         {
-            ProcessOption();
-        }
-
-        private static void ProcessOption()
-        {
-            Console.WriteLine("ProcessBt");
-            var option = Console.ReadLine();
-            if (option.ToLower() == "exit")
-            {
-                Console.WriteLine("bye bye");
-                Console.ReadLine();
-                return;
-            }
-
-            Console.WriteLine("");
+            Console.InputEncoding = Encoding.Unicode;
+            Console.OutputEncoding = Encoding.UTF8;
             ProcessDosomething(new BtFileFinder());
-
-            ProcessOption();
         }
 
         private static void ProcessDosomething(object finder)
@@ -47,9 +32,8 @@ namespace BtFileProcesserNet
             var option = Console.ReadLine();
             if (option.ToLower() == "exit")
             {
-                Console.WriteLine("Finish Process");
+                Console.WriteLine("bye bye");
                 Console.ReadLine();
-                Console.Clear();
                 return;
             }
 
